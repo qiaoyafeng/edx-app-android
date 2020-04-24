@@ -192,6 +192,8 @@
         <item name="android:layout_height">@dimen/video_player_pause_btn_height</item>
         <item name="android:background">@drawable/semi_transparent_gray_circle</item>
         <item name="android:padding">@dimen/video_player_pause_btn_padding</item>
+        <item name="android:layout_marginStart">@dimen/video_player_pause_left_margin</item>
+        <item name="android:layout_marginEnd">@dimen/video_player_pause_right_margin</item>
         <item name="android:layout_gravity">center</item>
         <item name="iconColor">@color/white</item>
     </style>

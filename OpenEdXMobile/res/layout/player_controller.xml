@@ -88,11 +88,33 @@
 
     <!-- Put play/pause button to the center of player -->
 
-    <com.joanzapata.iconify.widget.IconImageButton
-        android:id="@+id/pause"
-        style="@style/video_player_play_pause_button"
-        android:contentDescription="@string/video_player_pause"
-        app:iconName="fa-pause" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <com.joanzapata.iconify.widget.IconImageButton
+            android:id="@+id/rewind"
+            style="@style/video_player_side_control"
+            android:layout_gravity="center_vertical|center"
+            android:contentDescription="@string/video_player_rewind_button"
+            app:iconName="fa-history" />
+
+        <com.joanzapata.iconify.widget.IconImageButton
+            android:id="@+id/pause"
+            style="@style/video_player_play_pause_button"
+            android:contentDescription="@string/video_player_pause"
+            app:iconName="fa-pause" />
+
+        <com.joanzapata.iconify.widget.IconImageButton
+            android:id="@+id/forward"
+            style="@style/video_player_side_control"
+            android:layout_gravity="center_vertical|center"
+            android:contentDescription="@string/video_player_forward_button"
+            android:scaleX="-1"
+            app:iconName="fa-history" />
+    </LinearLayout>
 
     <com.joanzapata.iconify.widget.IconImageButton
         android:id="@+id/prev"

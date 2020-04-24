@@ -63,7 +63,7 @@ import java.util.Locale;
  * <p>
  * Functions like show() and hide() have no effect when MediaController
  * is created in an xml layout.
- * 
+ *
  * MediaController will hide and
  * show the buttons according to these rules:
  * <ul>
@@ -103,6 +103,8 @@ public class PlayerController extends FrameLayout {
     private ImageButton         mRewButton;
     private ImageButton         mNextButton;
     private ImageButton         mPrevButton;
+    private ImageButton         mRewindButton;
+    private ImageButton         mForwardButton;
     private IconImageButton     mFullscreenButton;
     private IconImageButton     mSettingsButton;
     private Handler             mHandler = new MessageHandler(this);
@@ -197,6 +199,22 @@ public class PlayerController extends FrameLayout {
             mRewButton.setOnClickListener(mRewListener);
             if (!mFromXml) {
                 mRewButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        mRewindButton = (ImageButton) v.findViewById(R.id.rewind);
+        if (mRewindButton != null) {
+            mRewindButton.setOnClickListener(mRewindListener);
+            if (!mFromXml) {
+                mRewindButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        mForwardButton = (ImageButton) v.findViewById(R.id.forward);
+        if (mForwardButton != null) {
+            mForwardButton.setOnClickListener(mForwardListener);
+            if (!mFromXml) {
+                mForwardButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
             }
         }
 
@@ -325,7 +343,7 @@ public class PlayerController extends FrameLayout {
                 } else {
                     mPauseButton.setEnabled(true);
                 }
-            } 
+            }
             if (mRewButton != null) {
                 if (!mPlayer.canSeekBackward()) {
                     mRewButton.setEnabled(false);
@@ -406,6 +424,9 @@ public class PlayerController extends FrameLayout {
                 long pos = 1000L * position / duration;
                 mProgress.setProgress( (int) pos);
             }
+            if(position > duration){
+                position = duration;
+            }
             int percent = mPlayer.getBufferPercentage();
             mProgress.setSecondaryProgress(percent * 10);
         }
@@ -417,13 +438,13 @@ public class PlayerController extends FrameLayout {
 
         return position;
     }
-    
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         show();
         return false;
     }
-    
+
     @Override
     public boolean onTrackballEvent(MotionEvent ev) {
         show();
@@ -577,7 +598,7 @@ public class PlayerController extends FrameLayout {
         }catch(Exception e){
             logger.error(e);
         }
-        
+
         // callback this event
         /*if (mEventListener != null) {
             mEventListener.callSettings();
@@ -719,18 +740,61 @@ public class PlayerController extends FrameLayout {
             }catch(Exception e){
                 logger.error(e);
             }
-            
+
             // apply 30 seconds rewind
             pos -= (30 * 1000); // milliseconds
             mPlayer.seekTo(pos);
             setProgress();
 
             show();
+        }
+    };
 
-            // callback this event
-//          if (mEventListener != null) {
-//              mEventListener.onSeek(pos);
-//          }
+    /**
+     * Listener for the rewind 10 seconds button in the media player
+     */
+    private View.OnClickListener mRewindListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mPlayer == null) {
+                return;
+            }
+            long pos = mPlayer.getCurrentPosition();
+            try{
+                mPlayer.callPlayerSeeked(pos, pos-10000, true);
+            }catch(Exception e){
+                logger.error(e);
+            }
+
+            // apply 10 seconds rewind
+            pos -= (10 * 1000); // milliseconds
+            mPlayer.seekTo(pos);
+            setProgress();
+
+            show();
+        }
+    };
+
+    /**
+     * Listener for the forward 15 seconds button in the media player
+     */
+    private View.OnClickListener mForwardListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mPlayer == null) {
+                return;
+            }
+            long pos = mPlayer.getCurrentPosition();
+            try{
+                mPlayer.callPlayerSeeked(pos, pos+15000, true);
+            }catch(Exception e){
+                logger.error(e);
+            }
+
+            // apply 30 seconds rewind
+            pos += (15 * 1000); // milliseconds
+            mPlayer.seekTo(pos);
+            setProgress();
+
+            show();
         }
     };
 
@@ -778,7 +842,7 @@ public class PlayerController extends FrameLayout {
     }
 
     private static class MessageHandler extends Handler {
-        private final WeakReference<PlayerController> mView; 
+        private final WeakReference<PlayerController> mView;
 
         MessageHandler(PlayerController view) {
             mView = new WeakReference<>(view);
@@ -836,18 +900,18 @@ public class PlayerController extends FrameLayout {
     public void showProgress() {
         this.mProgress.setVisibility(View.VISIBLE);
     }
-    
+
     /**
      * Triggers click of next button.
      */
     public void playNext() {
-        if (mNextListener != null 
+        if (mNextListener != null
                 && mNextButton != null
                 && mNextButton.getVisibility() == View.VISIBLE) {
             mNextListener.onClick(mNextButton);
         }
     }
-    
+
     /**
      * Triggers click of previous button.
      */
@@ -858,7 +922,7 @@ public class PlayerController extends FrameLayout {
             mPrevListener.onClick(mPrevButton);
         }
     }
-    
+
     public void setSettingsBtnDrawable(boolean isSettingEnabled){
         if (mSettingsButton != null) {
             if (isSettingEnabled) {
