@@ -30,12 +30,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+
+import androidx.core.view.ViewCompat;
 
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 import com.joanzapata.iconify.widget.IconImageButton;
@@ -100,7 +104,6 @@ public class PlayerController extends FrameLayout {
     StringBuilder               mFormatBuilder;
     Formatter                   mFormatter;
     private IconImageButton     mPauseButton;
-    private ImageButton         mRewButton;
     private ImageButton         mNextButton;
     private ImageButton         mPrevButton;
     private ImageButton         mRewindButton;
@@ -110,6 +113,8 @@ public class PlayerController extends FrameLayout {
     private Handler             mHandler = new MessageHandler(this);
     private String              mTitle;
     private TextView            mTitleTextView;
+    private TextView            mRewindTimeTextView;
+    private TextView            mForwardTimeTextView;
     private boolean             mIsAutoHide = true;
     private String              mLmsUrl;
     private View                mTopBar;
@@ -194,14 +199,6 @@ public class PlayerController extends FrameLayout {
             mFullscreenButton.setOnClickListener(mFullscreenListener);
         }
 
-        mRewButton = (ImageButton) v.findViewById(R.id.rewind_button);
-        if (mRewButton != null) {
-            mRewButton.setOnClickListener(mRewListener);
-            if (!mFromXml) {
-                mRewButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
-            }
-        }
-
         mRewindButton = (ImageButton) v.findViewById(R.id.rewind);
         if (mRewindButton != null) {
             mRewindButton.setOnClickListener(mRewindListener);
@@ -251,6 +248,8 @@ public class PlayerController extends FrameLayout {
         installPrevNextListeners();
 
         mTitleTextView = (TextView) v.findViewById(R.id.video_title);
+        mRewindTimeTextView = (TextView) v.findViewById(R.id.rewind_time);
+        mForwardTimeTextView = (TextView) v.findViewById(R.id.forward_time);
         mTopBar = v.findViewById(R.id.video_top_bar);
     }
 
@@ -342,13 +341,6 @@ public class PlayerController extends FrameLayout {
                     mPauseButton.setEnabled(false);
                 } else {
                     mPauseButton.setEnabled(true);
-                }
-            }
-            if (mRewButton != null) {
-                if (!mPlayer.canSeekBackward()) {
-                    mRewButton.setEnabled(false);
-                } else {
-                    mRewButton.setEnabled(true);
                 }
             }
         } catch (IncompatibleClassChangeError ex) {
@@ -698,8 +690,11 @@ public class PlayerController extends FrameLayout {
         if (mPauseButton != null) {
             mPauseButton.setEnabled(enabled);
         }
-        if (mRewButton != null) {
-            mRewButton.setEnabled(enabled);
+        if (mForwardButton != null) {
+            mForwardButton.setEnabled(enabled);
+        }
+        if (mRewindButton != null) {
+            mRewindButton.setEnabled(enabled);
         }
         if (mNextButton != null) {
             mNextButton.setEnabled(enabled && mNextListener != null);
@@ -727,36 +722,17 @@ public class PlayerController extends FrameLayout {
     }
 
     /**
-     * Listener for the rewind 30 seconds button in the media player
-     */
-    private View.OnClickListener mRewListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            if (mPlayer == null) {
-                return;
-            }
-            long pos = mPlayer.getCurrentPosition();
-            try{
-                mPlayer.callPlayerSeeked(pos, pos-30000, true);
-            }catch(Exception e){
-                logger.error(e);
-            }
-
-            // apply 30 seconds rewind
-            pos -= (30 * 1000); // milliseconds
-            mPlayer.seekTo(pos);
-            setProgress();
-
-            show();
-        }
-    };
-
-    /**
      * Listener for the rewind 10 seconds button in the media player
      */
     private View.OnClickListener mRewindListener = new View.OnClickListener() {
         public void onClick(View v) {
             if (mPlayer == null) {
                 return;
+            }
+            if(ViewCompat.getLayoutDirection(getRootView()) == ViewCompat.LAYOUT_DIRECTION_LTR){
+                setTextViewAnimation(mRewindTimeTextView, false);
+            } else {
+                setTextViewAnimation(mRewindTimeTextView, true);
             }
             long pos = mPlayer.getCurrentPosition();
             try{
@@ -782,6 +758,11 @@ public class PlayerController extends FrameLayout {
             if (mPlayer == null) {
                 return;
             }
+            if(ViewCompat.getLayoutDirection(getRootView()) == ViewCompat.LAYOUT_DIRECTION_LTR){
+                setTextViewAnimation(mForwardTimeTextView, true);
+            } else {
+                setTextViewAnimation(mForwardTimeTextView, false);
+            }
             long pos = mPlayer.getCurrentPosition();
             try{
                 mPlayer.callPlayerSeeked(pos, pos+15000, true);
@@ -789,7 +770,7 @@ public class PlayerController extends FrameLayout {
                 logger.error(e);
             }
 
-            // apply 30 seconds rewind
+            // apply 15 seconds forward
             pos += (15 * 1000); // milliseconds
             mPlayer.seekTo(pos);
             setProgress();
@@ -797,6 +778,50 @@ public class PlayerController extends FrameLayout {
             show();
         }
     };
+
+
+    private void setAnimationListener(Animation animation, TextView textView){
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                textView.setVisibility(VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                textView.setVisibility(GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+                textView.setVisibility(GONE);
+            }
+        });
+    }
+
+    private void setTextViewAnimation(TextView textView, boolean isLTR){
+        // new TranslateAnimation (float fromXDelta,float toXDelta, float fromYDelta, float toYDelta)
+        TranslateAnimation animation = new TranslateAnimation(0.0f, isLTR ? 1500.0f : -1500.f,
+                0.0f, 0.0f);
+        animation.setDuration(1500); // animation duration, change accordingly
+        animation.setRepeatCount(0); // animation repeat count
+        animation.setFillAfter(false);
+        setAnimationListener(animation, textView);
+        textView.startAnimation(animation);//your_view for which you need animation
+        invalidateViewHandler();
+    }
+
+
+    private void invalidateViewHandler(){
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mForwardTimeTextView.setVisibility(GONE);
+                mRewindTimeTextView.setVisibility(GONE);
+            }
+        }, 1400);
+    }
 
 
     private void installPrevNextListeners() {
