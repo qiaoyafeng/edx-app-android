@@ -30,7 +30,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -40,6 +39,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import androidx.core.view.ViewCompat;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 import com.joanzapata.iconify.widget.IconImageButton;
@@ -779,34 +779,17 @@ public class PlayerController extends FrameLayout {
         }
     };
 
-
-    private void setAnimationListener(Animation animation, TextView textView){
-        animation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                textView.setVisibility(VISIBLE);
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                textView.setVisibility(GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-                textView.setVisibility(GONE);
-            }
-        });
-    }
-
     private void setTextViewAnimation(TextView textView, boolean isLTR){
+        textView.setVisibility(INVISIBLE);
         // new TranslateAnimation (float fromXDelta,float toXDelta, float fromYDelta, float toYDelta)
-        TranslateAnimation animation = new TranslateAnimation(0.0f, isLTR ? 1500.0f : -1500.f,
+        TranslateAnimation animation = new TranslateAnimation(0.0f, isLTR ? 60 : -60,
                 0.0f, 0.0f);
-        animation.setDuration(1500); // animation duration, change accordingly
+        animation.setDuration(2000); // animation duration, change accordingly
+        animation.setInterpolator(new FastOutSlowInInterpolator());
         animation.setRepeatCount(0); // animation repeat count
         animation.setFillAfter(false);
-        setAnimationListener(animation, textView);
+        animation.setFillBefore(true);
+        textView.setVisibility(VISIBLE);
         textView.startAnimation(animation);//your_view for which you need animation
         invalidateViewHandler();
     }
@@ -817,10 +800,10 @@ public class PlayerController extends FrameLayout {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mForwardTimeTextView.setVisibility(GONE);
-                mRewindTimeTextView.setVisibility(GONE);
+                mForwardTimeTextView.setVisibility(INVISIBLE);
+                mRewindTimeTextView.setVisibility(INVISIBLE);
             }
-        }, 1400);
+        }, 1500);
     }
 
 

@@ -110,6 +110,8 @@
     <dimen name="video_player_side_control_padding">5dp</dimen>
     <dimen name="video_player_control_left_margin">10dp</dimen>
     <dimen name="video_player_control_right_margin">10dp</dimen>
+    <dimen name="video_player_advance_control_left_margin">20dp</dimen>
+    <dimen name="video_player_advance_control_right_margin">20dp</dimen>
     <dimen name="video_player_bottom_control_left_margin">4dp</dimen>
     <dimen name="video_player_bottom_control_right_margin">4dp</dimen>
     <dimen name="video_player_seekbar_height">24dp</dimen>
@@ -117,7 +119,7 @@
     <dimen name="video_player_seekbar_right_margin">6dp</dimen>
     <dimen name="video_player_duration_padding">4dp</dimen>
     <dimen name="video_player_settings_divider_height">@dimen/edx_divider_length</dimen>
-    <dimen name="video_player_rewind_forward_time_padding">40dp</dimen>
+    <dimen name="video_player_rewind_forward_time_padding">50dp</dimen>
 
     <!-- Video Player Settings popup dimen values-->
     <dimen name="settings_popup_height">80dp</dimen>

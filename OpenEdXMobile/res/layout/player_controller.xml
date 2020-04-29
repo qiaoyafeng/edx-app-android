@@ -98,7 +98,7 @@
         <View
             android:layout_width="@dimen/video_player_rewind_forward_time_padding"
             android:layout_height="0dp"
-            app:layout_constraintEnd_toStartOf="@+id/rewind_time"
+            app:layout_constraintStart_toStartOf="@+id/rewind_time"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -114,7 +114,7 @@
             android:id="@+id/rewind"
             style="@style/video_player_side_control"
             android:background="@drawable/ripple_effect"
-            android:layout_marginEnd="@dimen/video_player_control_right_margin"
+            android:layout_marginEnd="@dimen/video_player_advance_control_right_margin"
             android:contentDescription="@string/video_player_rewind_button"
             app:iconName="fa-history"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -134,7 +134,7 @@
         <com.joanzapata.iconify.widget.IconImageButton
             android:id="@+id/forward"
             style="@style/video_player_side_control"
-            android:layout_marginStart="@dimen/video_player_control_right_margin"
+            android:layout_marginStart="@dimen/video_player_advance_control_left_margin"
             android:background="@drawable/ripple_effect"
             android:contentDescription="@string/video_player_forward_button"
             android:scaleX="-1"
