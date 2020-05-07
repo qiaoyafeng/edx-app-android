@@ -30,6 +30,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -39,7 +41,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import androidx.core.view.ViewCompat;
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 import com.joanzapata.iconify.widget.IconImageButton;
@@ -84,6 +85,8 @@ import java.util.Locale;
 public class PlayerController extends FrameLayout {
 
     public static final long    DEFAULT_TIMEOUT_MS = 3000L;
+    public static final long    DEFAULT_ANIMATION_DURATION_MS = 500L;
+    public static final float   ANIMATION_DISPLACEMENT = 60f;
 
     private long                mTimeoutMS = DEFAULT_TIMEOUT_MS;
     private PlayerListener mPlayer;
@@ -118,6 +121,8 @@ public class PlayerController extends FrameLayout {
     private boolean             mIsAutoHide = true;
     private String              mLmsUrl;
     private View                mTopBar;
+    private TranslateAnimation  mForwardAnimation;
+    private TranslateAnimation  mRewindAnimation;
 
     private static final Logger logger = new Logger(PlayerController.class.getName());
 
@@ -251,6 +256,56 @@ public class PlayerController extends FrameLayout {
         mRewindTimeTextView = (TextView) v.findViewById(R.id.rewind_time);
         mForwardTimeTextView = (TextView) v.findViewById(R.id.forward_time);
         mTopBar = v.findViewById(R.id.video_top_bar);
+
+        initializeAnimations();
+    }
+
+    private void initializeAnimations(){
+        boolean isLTR = (ViewCompat.getLayoutDirection(getRootView()) == ViewCompat.LAYOUT_DIRECTION_LTR);
+            // new TranslateAnimation (float fromXDelta,float toXDelta, float fromYDelta, float toYDelta)
+        mForwardAnimation = new TranslateAnimation(0.0f, isLTR ? ANIMATION_DISPLACEMENT : -ANIMATION_DISPLACEMENT,
+                0.0f, 0.0f);
+        mForwardAnimation.setDuration(DEFAULT_ANIMATION_DURATION_MS); // animation duration, change accordingly
+        mForwardAnimation.setInterpolator(new DecelerateInterpolator());
+        mForwardAnimation.setRepeatCount(0); // animation repeat count
+        mForwardAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                mForwardTimeTextView.setVisibility(VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mForwardTimeTextView.setVisibility(GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        mRewindAnimation = new TranslateAnimation(0.0f, !isLTR ? ANIMATION_DISPLACEMENT : -ANIMATION_DISPLACEMENT,
+                0.0f, 0.0f);
+        mRewindAnimation.setDuration(DEFAULT_ANIMATION_DURATION_MS); // animation duration, change accordingly
+        mRewindAnimation.setInterpolator(new DecelerateInterpolator());
+        mRewindAnimation.setRepeatCount(0); // animation repeat count
+        mRewindAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                mRewindTimeTextView.setVisibility(VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mRewindTimeTextView.setVisibility(GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
     }
 
     /**
@@ -729,10 +784,8 @@ public class PlayerController extends FrameLayout {
             if (mPlayer == null) {
                 return;
             }
-            if(ViewCompat.getLayoutDirection(getRootView()) == ViewCompat.LAYOUT_DIRECTION_LTR){
-                setTextViewAnimation(mRewindTimeTextView, false);
-            } else {
-                setTextViewAnimation(mRewindTimeTextView, true);
+            if(mRewindAnimation != null){
+                mRewindTimeTextView.startAnimation(mRewindAnimation);
             }
             long pos = mPlayer.getCurrentPosition();
             try{
@@ -758,11 +811,9 @@ public class PlayerController extends FrameLayout {
             if (mPlayer == null) {
                 return;
             }
-            if(ViewCompat.getLayoutDirection(getRootView()) == ViewCompat.LAYOUT_DIRECTION_LTR){
-                setTextViewAnimation(mForwardTimeTextView, true);
-            } else {
-                setTextViewAnimation(mForwardTimeTextView, false);
-            }
+           if(mForwardAnimation != null){
+               mForwardTimeTextView.startAnimation(mForwardAnimation);
+           }
             long pos = mPlayer.getCurrentPosition();
             try{
                 mPlayer.callPlayerSeeked(pos, pos+15000, true);
@@ -778,34 +829,6 @@ public class PlayerController extends FrameLayout {
             show();
         }
     };
-
-    private void setTextViewAnimation(TextView textView, boolean isLTR){
-        textView.setVisibility(INVISIBLE);
-        // new TranslateAnimation (float fromXDelta,float toXDelta, float fromYDelta, float toYDelta)
-        TranslateAnimation animation = new TranslateAnimation(0.0f, isLTR ? 60 : -60,
-                0.0f, 0.0f);
-        animation.setDuration(2000); // animation duration, change accordingly
-        animation.setInterpolator(new FastOutSlowInInterpolator());
-        animation.setRepeatCount(0); // animation repeat count
-        animation.setFillAfter(false);
-        animation.setFillBefore(true);
-        textView.setVisibility(VISIBLE);
-        textView.startAnimation(animation);//your_view for which you need animation
-        invalidateViewHandler();
-    }
-
-
-    private void invalidateViewHandler(){
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mForwardTimeTextView.setVisibility(INVISIBLE);
-                mRewindTimeTextView.setVisibility(INVISIBLE);
-            }
-        }, 1500);
-    }
-
 
     private void installPrevNextListeners() {
         if(mNextListener!=null){
