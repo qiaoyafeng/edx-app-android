@@ -334,6 +334,7 @@ public class PlayerController extends FrameLayout {
      *  tapping the screen, activating a control, etc.
      */
     public void show() {
+        hideTimeText();
         show(mTimeoutMS);
     }
 
@@ -627,6 +628,7 @@ public class PlayerController extends FrameLayout {
             return;
         }
 
+        hideTimeText();
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
         } else {
@@ -784,6 +786,7 @@ public class PlayerController extends FrameLayout {
             if (mPlayer == null) {
                 return;
             }
+            hideTimeText();
             if(mRewindAnimation != null){
                 mRewindTimeTextView.startAnimation(mRewindAnimation);
             }
@@ -811,6 +814,7 @@ public class PlayerController extends FrameLayout {
             if (mPlayer == null) {
                 return;
             }
+            hideTimeText();
            if(mForwardAnimation != null){
                mForwardTimeTextView.startAnimation(mForwardAnimation);
            }
@@ -829,6 +833,14 @@ public class PlayerController extends FrameLayout {
             show();
         }
     };
+
+    /**
+     * Hide Rewind & Forward time text
+     */
+    private void hideTimeText(){
+        mRewindTimeTextView.setVisibility(GONE);
+        mForwardTimeTextView.setVisibility(GONE);
+    }
 
     private void installPrevNextListeners() {
         if(mNextListener!=null){
